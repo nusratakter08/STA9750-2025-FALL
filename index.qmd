@@ -1,0 +1,12 @@
+---
+title: "WELCOME TO MY STA 9750 WEBSITE"
+---
+
+**Hi! My name is Nusrat Akter. I am currently a student at Baruch College and take STA 9750.**
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`
