@@ -13,7 +13,7 @@ website:
     
 format:
   html:
-    theme: <cyborg>
+    theme: <morph>
     toc: false
 
 editor:
