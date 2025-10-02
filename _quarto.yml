@@ -13,7 +13,7 @@ website:
     
 format:
   html:
-    theme: morph
+    theme: <morph>
     toc: false
 
 editor:
