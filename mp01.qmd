@@ -399,13 +399,19 @@ stranger_things_countries <- COUNTRY_TOP_10 |>
   filter(show_title == "Stranger Things", category == "TV") |>
   summarise(total_countries = n_distinct(country_name))
 
+# Bridgerton Total Viewership
+bridgerton_viewership <- GLOBAL_TOP_10 |>
+  filter(str_detect(show_title, "Bridgerton")) |>
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  mutate(total_hours = format(total_hours, big.mark = ",", scientific = FALSE))
+
 ```
 
 Renew your Netflix memberships folks because *Stranger Things* is coming back for its fifth and final season, and we cannot wait for what is going to unfold in the town of Hawkins, Indiana. From Demogorgons to catchy tunes, secret lab experiments to retro '80s vibes, the show has established a solid fan base across the globe. 
 
 Releasing its first season in 2022, the show managed to stay cemented at Netflix's Global Top 10 for **`r stranger_things_top_10`** weeks, illustrating how truly addicting the show is. 
 
-Since the release of all four seasons, it has garnered a total of **`r stranger_things$total_hours`** viewership hours. As popular it may be in the United States, the hit show is even more popular in other countries. It managed to appear in **`r stranger_things_countries$total_countries`** different countries — *Stranger Things* isn't just loved by the Americans, its loved around the world! 
+Since the release of all four seasons, it has garnered a total of **`r stranger_things$total_hours`** viewership hours which defeated the series *Bridgerton*, which had **`r bridgerton_viewership$total_hours`** viewership hours. As popular it may be in the United States, the hit show is even more popular in other countries. It managed to appear in **`r stranger_things_countries$total_countries`** different countries — *Stranger Things* isn't just loved by the Americans, its loved around the world! 
 
 ## *Step Aside Hollywood Because You're Getting Taken Over By Our Friends From India!*
 ```{r}
