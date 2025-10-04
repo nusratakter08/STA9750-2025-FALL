@@ -364,9 +364,6 @@ tv_show_debuts <- COUNTRY_TOP_10 |>
 The TV show, **`r tv_show_debuts$show_title`** was created in South Korea and released on **`r tv_show_debuts$debut_week`**. It hit the top 10 for **`r tv_show_debuts$countries_count`** countries during its debut week. 
 
 # **Netflix Is Everywhere And We Can't Escape It**
-<div style="text-align: center;">
-  <img src="https://tenor.com/0KPB.gif" alt="GIF" width="500">
-</div>
 
 ## *Watch Out Everyone, The Story In Hawkins Is Finally Coming To An End!*
 ```{r}
