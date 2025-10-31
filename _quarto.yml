@@ -18,7 +18,7 @@ website:
         href: https://github.com/nusratakter08/STA9750-2025-FALL
 format:
   html:
-    theme: <morph>
+    theme: <journal>
     toc: false
 
 editor:
