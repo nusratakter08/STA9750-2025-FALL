@@ -15,6 +15,7 @@ website:
         href: index.qmd
       - text: "Project #1"
         href: mp01.qmd
+        text: "GitHub"
         href: https://github.com/nusratakter08/STA9750-2025-FALL
 format:
   html:
