@@ -4,8 +4,7 @@ project:
 
 website:
   title: "STA 9750 Submission Material"
-  description:
-    Course Projects for STA 9750 at Baruch College
+  description: "Course Projects for STA 9750 at Baruch College"
   site-url: "https://nusratakter08.github.io/STA9750-2025-FALL/"
   navbar:
     background: primary
@@ -15,11 +14,13 @@ website:
         href: index.qmd
       - text: "Project #1"
         href: mp01.qmd
-        text: "GitHub"
+    left:
+      - icon: github
         href: https://github.com/nusratakter08/STA9750-2025-FALL
+
 format:
   html:
-    theme: <journal>
+    theme: journal
     toc: false
 
 editor:
