@@ -9,12 +9,12 @@ website:
   navbar:
     background: primary
     search: false
-    right:
-      - text: "Home"
-        href: index.qmd
-      - text: "Project #1"
-        href: mp01.qmd
     left:
+      - text: "HOME"
+        href: index.qmd
+      - text: "PROJECT #1"
+        href: mp01.qmd
+    right:
       - icon: github
         href: https://github.com/nusratakter08/STA9750-2025-FALL
 
