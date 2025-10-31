@@ -10,7 +10,12 @@ website:
   navbar:
     background: primary
     search: false
-    
+    right:
+      - text: "Home"
+        href: index.qmd
+      - text: "Project #1"
+        href: mp01.qmd
+        href: https://github.com/nusratakter08/STA9750-2025-FALL
 format:
   html:
     theme: <morph>
