@@ -25,9 +25,9 @@ execute:
 
 Housing affordability has become one of the most pressing challenges in cities across the United States. In this project, I analyze data to identify which cities are the most **“YIMBY” (Yes In My Backyard)** and those that embrace growth through flexible zoning and pro-housing policies. Inspired by CityNerd’s work, my goal is to show how encouraging development can make cities more affordable, diverse, and vibrant. Using these findings, I will write a policy brief aimed at convincing congressional representatives to support a federal YIMBY incentive program. A program like this would help reward cities that expand housing opportunities, help lower costs, strengthen communities, and ensure that more Americans can afford to live where they work.
 
-
 # **Data Acquisition**
-::: {.callout-note}
+
+::: callout-note
 We will be using the U.S. Census and ACS data to study housing, wage, and economic trends across Core-Based Statistical Areas (CBSAs). We include data on new housing construction and income from the Bureau of Labor Statistics. Together, these sources reveal patterns in housing growth, wages, and affordability.
 :::
 
@@ -372,8 +372,9 @@ datatable(
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Answer
+
 When comparing the CBSA's from 2010-2019, we can see there are several contenders when looking at the table provided. From the years 2010-2019, the CSBA, **`r largest_cbsa`**, permitted the largest number of new housing units just in that decade alone. The CBSA code for that particular area is 26420 and permitted a total of **`r format(q2_1_tbl %>% slice(1) %>% pull("Permits (2010–2019)"), big.mark = ",")`** housing units.
 :::
 
@@ -395,8 +396,9 @@ housing_permits <- PERMITS %>%
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Answer
+
 Based on our data, in **`r housing_permits$Year`**, Albuqquerque, NM permitted the most housing units with a total of **4,021 units**. Results in this year, however, may be skewed due to the COVID-19 epidemic faced in the year 2020.
 :::
 
@@ -483,8 +485,9 @@ datatable(
 )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Answer
+
 The state that had the highest average individual income in 2015 was **`r q2_3_tbl$Abbrev[1]`**. The average individual income in that year alone was **`r dollar(q2_3_tbl$"Avg Individual Income (2015)"[1])`**, surpassing states that were close such as Massachusetts (MA) and Connecticut (CT). This illustrates that where you live in the United States greatly affects how much you can earn. This can impact housing costs, schools, and even local services.
 :::
 
@@ -523,8 +526,9 @@ datatable(
 )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Answer
+
 The year in which NYC CBSA had the most data scientists in the country was **`r ds_cbsa$YEAR[1]`**. This goes to show how NYC leads in data science employment because of its large tech and finance industries.
 :::
 
@@ -587,8 +591,9 @@ datatable(
 )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Answer
+
 The finance and insurance industry's share of total NYC wages peaked at **`r percent(nyc_finance$finance_fraction[nyc_finance$YEAR == peak_year], accuracy = 0.1)`** in **`r peak_year`**. The finance and insurance industry is a pivotal part of NYC's economy and pays some of the highest wages in the country. This goes to show how dominating the industry is and its role in shaping the city's economic landscapes.
 :::
 
@@ -621,8 +626,9 @@ ggplot(metro_affordability_2009, aes(x = household_income, y = monthly_rent)) +
   theme_minimal()
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 Here we have the relationship between monthly rent and average household income per CSBA in the year 2009 as depicted by the red line shown on the scatter plot. There is a positive correlation between both which in terms tells us that higher-income areas tend to have higher rents. However, income alone doesn't determine rent prices. Some cities are more affordable than others at the same income level due to housing supply and local rules being instilled.
 :::
 
@@ -678,8 +684,9 @@ ggplot(healthcare_employment_relationship,
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 The plot here shows that bigger cities have more healthcare workers, with the red-line showing this relationship and how it stays steady over time. By doing so, we can interpret that as cities are growing, there is a need for more doctors, nurses, and hospital staff. The gray line shows the average healthcare share and cities above that line have more jobs in that field than the typical. This is due to the fact that they may house bigger facilties such as hospitals and schools.
 :::
 
@@ -738,8 +745,9 @@ ggplot(HOUSEHOLD_SIZE, aes(x = year, y = avg_household_size, group = GEOID)) +
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 From 2009 to 2023, we can see the average number of people per household has changed over time in different metro areas. The colored lines, as shown on the legend, represent the three major metros: **Yellow for Chicago, Red for Los Angeles, and Blue for NYC**. The grey lines represent all the other cities excluding the big three that was just listed. But what are we looking at exactly though? The data tells us that household sizes are getting smaller or staying the same, meaning that fewer people are living together as opposed to before.
 :::
 
@@ -800,11 +808,12 @@ datatable(
 
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 Rent burden occurs when households spend more than one-third of their income on rent. In this table, in particular, we are looking at Tampa-St. Petersburg-Clearwater, FL rent costs and household income towards rent each year. Higher numbers mean rent takes up more of people's income. In the year 2023, we can see that the monthly rent in that area was **`r dollar(tampa_rent$monthly_rent[tampa_rent$year == 2023])`** with a rent burden index of **`r tampa_rent$rent_burden_index[tampa_rent$year == 2023]`**. The rent-to-income percentage was **`r tampa_rent$rent_to_income_pct[tampa_rent$year == 2023]`%** which is a stark contrast in the year before.
 
-From 2022 to 2023, rent was raised by **$252**, with the rent-to-income percentage increasing by **2.9%**. Values that are above the normal threshold indicate that families may be struggling financially when most of their income is being pushed towards their living arrangements.
+From 2022 to 2023, rent was raised by **\$252**, with the rent-to-income percentage increasing by **2.9%**. Values that are above the normal threshold indicate that families may be struggling financially when most of their income is being pushed towards their living arrangements.
 :::
 
 ```{r}
@@ -869,12 +878,14 @@ datatable(
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
-Housing costs differ greatly across the country. The ones highlighted in red like **Clearlack, CA Metro Area`** (where rent consumes **`r rent_rank_tbl$rent_to_income_pct[1]`%** of income) show the least affordable cities, and the ones highlighted in blue like **Laconia, NH Metro Area** (where rent is only **`r rent_rank_tbl$rent_to_income_pct[11]`%** of income) show the most affordable. The cities with high costs typically have better jobs but not enough homes as opposed to cities with low costs having cheaper housing or better pay. This comes to show that housing affordability is important and can impact families everywhere.
+
+Housing costs differ greatly across the country. The ones highlighted in red like **Clearlack, CA Metro Area`** (where rent consumes **`r rent_rank_tbl$rent_to_income_pct[1]`%** of income) show the least affordable cities, and the ones highlighted in blue like **Laconia, NH Metro Area** (where rent is only **`r rent_rank_tbl$rent_to_income_pct\[11\]% of income)** show the most affordable. The cities with high costs typically have better jobs but not enough homes as opposed to cities with low costs having cheaper housing or better pay. This comes to show that housing affordability is important and can impact families everywhere.
 :::
 
 # **Housing Growth**
+
 ## Population And Permit
 
 ```{r}
@@ -905,8 +916,9 @@ housing_growth <- POPULATION %>%
     growth_rate_index = rescale(growth_rate, to = c(0, 100))
   )
 ```
-::: {.callout-note}
-Our population and permits tables were joined together to help us construct a suitable measure of housing growth. 
+
+::: callout-note
+Our population and permits tables were joined together to help us construct a suitable measure of housing growth.
 :::
 
 ## CBSAs with Highest and Lowest Instantaneous Housing Growth
@@ -965,8 +977,9 @@ datatable(
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 Housing construction rates differ a lot across cities. The ones highlighted in green like **`r instant_tbl$"Metro Area"[1]`** (**Growth Index: `r instant_tbl$"Growth Instant Index"[1]`**) show cities building the most homes per person, and the ones highlighted in red like **`r instant_tbl$"Metro Area"[11]`** (**Growth Index: `r instant_tbl$"Growth Instant Index"[11]`**) show cities building the least. More construction helps keep housing affordable, while less construction can cause shortages and higher prices in cities.
 :::
 
@@ -1027,8 +1040,9 @@ datatable(
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 Highlighted in blue shows cities building homes to match population growth while those highlighted in orange shows cities not building enough. Cities that fall behind are more prone to facing housing shortages and rising costs. The highest-ranked city, which is **Springfield, OH**, has a growth rate index of **`r max(rate_tbl$"Growth Rate Index")`**, while the lowest, **Mobile, AL** is **`r min(rate_tbl$"Growth Rate Index")`**, showing a wide gap in how cities respond to population increases.
 :::
 
@@ -1104,8 +1118,9 @@ datatable(
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 The metro areas highlighted in blue scored the highest on both housing measures while the ones highlighted in orange scored the lowest. Composite scores range from **`r min(composite_tbl$"Composite Growth Index")` to `r max(composite_tbl$"Composite Growth Index")`**. Higher composite scores essentially means that there is better housing construction while lower composite scores means less housing construction.
 :::
 
@@ -1153,8 +1168,9 @@ ggplot(rent_change, aes(x = rent_early, y = rent_latest)) +
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 This compares rent burden from the beginning to the end of the study. Cities on the dashed line stayed the same. Cities above the line became less affordable, while cities below became more affordable. The red dots show **`r nrow(highlight)`** cities like **`r highlight$NAME[1]`** that started with high rent burden (index: **`r round(highlight$rent_early[1], 1)`**) but improved to **`r round(highlight$rent_latest[1], 1)`** over time.
 :::
 
@@ -1199,8 +1215,9 @@ ggplot(yimby_latest, aes(x = rent_burden_index, y = growth_instant_index)) +
   )
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## What Does This Show?
+
 This compares rent burden to housing construction in **`r latest_year`**. The red dots show **`r nrow(highlight2)`** YIMBY cities like **`r highlight2$NAME[1]`** that have high rent but are building lots of housing to fix affordability problems. The larger dots in blue represent bigger cities. These metros recognize their housing challenges and are taking action.
 :::
 
@@ -1219,17 +1236,14 @@ In the United States of America, there are various cities that are currently str
 
 By tying federal grants to real results, the program helps cities build more housing and support local economic growth.
 
-
 ## Who Are Our Target Bill Sponsors?
 
 -   **Primary Sponsor:** Representative from **Abilene, TX Metro Area**
     -   *Abilene, TX – rapid employment growth and pro-development policies.*\
     -   *Federal grants aid in city expand housing options, supporting local workers and continuing economic growth.*
-    
 -   **Co-Sponsor:** Representative from **San Jose–Sunnyvale–Santa Clara, CA Metro Area**
     -   *San Jose, CA - high-income city with limited housing supply, increased rent and limited access for essential workers.*\
     -   *Federal incentives aid in increasing housing availability, reduce rent struggles, and improve quality of life for families.*
-
 
 ## Key Occupations & Benefits
 
@@ -1237,7 +1251,7 @@ By tying federal grants to real results, the program helps cities build more hou
 
 -   *Building new housing creates jobs in construction and other skilled trades.*
 
--    *Union groups gain more members and stable employment opportunities.*
+-   *Union groups gain more members and stable employment opportunities.*
 
 **Teachers, Firefighters, Nurses**
 
@@ -1249,14 +1263,13 @@ By tying federal grants to real results, the program helps cities build more hou
 
 ## Metrics for Success
 
--   **Rent Burden:** *The portion of income spent on rent. Keeping it at 30% or less makes housing affordable for families/workers and reduces financial burden.* \
+-   **Rent Burden:** *The portion of income spent on rent. Keeping it at 30% or less makes housing affordable for families/workers and reduces financial burden.*\
 
 -   **Growth Metric:** *The percent change in jobs or housing units over time. Higher percentage in growth shows successful YIMBY policies that have been implemented.*
 
-
 ## Conclusion
 
-What is The **Housing For All** Program Really Doing? \
+What is The **Housing For All** Program Really Doing?\
 
 -   *Rewarding cities that are already growing, like Abilene*\
 -   *Supporting high-cost cities, like San Jose, to build more housing units*\
