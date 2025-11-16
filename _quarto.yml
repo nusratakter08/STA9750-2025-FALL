@@ -16,6 +16,8 @@ website:
         href: mp01.qmd
       - text: "PROJECT #2"
         href: mp02.qmd
+      - text: "PROJECT #3"
+        href: mp03.qmd
     right:
       - icon: github
         href: https://github.com/nusratakter08/STA9750-2025-FALL

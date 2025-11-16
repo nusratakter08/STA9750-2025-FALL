@@ -1,0 +1,780 @@
+---
+title: "Mini-Project #03: Visualizing and Maintaining the Green Canopy of NYC"
+author: "Nusrat Akter"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    theme: journal
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show The Code"
+    embed-resources: true
+editor: visual
+execute: 
+  warning: false
+  message: false
+  echo: true
+  cache: false
+---
+
+::: {style="text-align: center;"}
+<img src="newyork2.gif" width="650" style="border: 4px solid #000; border-radius: 10px;"/>
+:::
+
+# **What Is The Mission?**
+
+New York City’s parks and trees play a huge role in making the city a healthier and more livable place. With nearly **900,000** trees across the five boroughs, NYC’s urban forest provides cleaner air, shade in the summer, and a connection to nature that many people rely on. **The NYC Parks Department** invests a significant budget and workforce to care for more than **30,000** acres of public parkland, showing how important these green spaces are to the city. In this mini-project, I will explore data from the **NYC TreeMap** to create visualizations that help us better understand the trees around us. Based on what I find, I will propose a new program that aims to make the benefits of NYC’s trees more accessible to all communities, especially those that may not have as much green space today.
+
+# **Data Acquisition**
+
+This code loads the **NYC Council District** shapefile and converts it into the **WGS84** coordinate system so it can be used for mapping. It then reads in previously cleaned NYC tree point data, including a full dataset and a smaller **50,000-tree sample**. These datasets will be used to create visualizations and maps of NYC’s tree distribution.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+
+library(sf)
+library(dplyr)
+library(here)
+library(httr2)
+library(glue)
+library(ggplot2)
+library(leaflet)
+
+# read + transform NYC council district shapefile
+nycc_sf <- st_read(here("data/mp03/nycc_25c/nycc.shp"), quiet = TRUE)
+nycc_wgs84 <- st_transform(nycc_sf, crs = "WGS84")
+
+# pre-saved cleaned tree data
+trees_pts <- readRDS("data/mp03/trees_points.rds")
+trees_sample <- readRDS("data/mp03/trees_sample50k.rds")
+
+```
+
+::: callout-note
+By running this code beforehand, we avoided errors, slow rendering speeds, and max usage of RAM storage.
+:::
+
+# **Task 1: Download NYC City Council District Boundaries**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+#| cache: true
+
+library(sf)
+
+# read shapefile
+nycc <- st_read("data/mp03/nycc_25c/nycc.shp", quiet = TRUE)
+
+# transform CRS to WGS84 (EPSG:4326)
+nycc_wgs84 <- st_transform(nycc, crs = "WGS84")
+```
+
+::: callout-note
+This function is used to load the **NYC City Council District** boundaries so we can map them later. I already created the folder, downloaded the zip file, and unzipped it, so now the function just reads the shapefile and transforms it to **WGS84** so it matches the coordinate system used in the rest of the project. After that, it returns the cleaned district boundary data so we can use it in our maps and visualizations.
+:::
+
+# **Task 2: Download NYC Forestry Tree Points**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| results: 'hide'
+#| codefold: true
+
+library(httr2)
+library(sf)
+library(dplyr)
+library(glue)
+library(here)
+
+# responsibly download NYC street trees from the socrata API
+get_tree_points <- function(limit = 50000) {
+
+  base_url <- "https://data.cityofnewyork.us/resource/uvpi-gqnh.geojson"
+  dir.create(here("data/mp03"), showWarnings = FALSE)
+
+  page <- 0
+  files <- c()
+
+  repeat {
+    file_path <- here(glue("data/mp03/trees_page_{sprintf('%03d', page)}.geojson"))
+
+    # download only if not already saved
+    if (!file.exists(file_path)) {
+      req <- request(base_url) |> 
+        req_url_query(`$limit` = limit, `$offset` = page * limit) |>
+        req_perform()
+
+      writeBin(resp_body_raw(req), file_path)
+    }
+
+    files <- c(files, file_path)
+
+    # stop when the file is very small (last page)
+    if (file.info(file_path)$size < 2000) break
+
+    page <- page + 1
+  }
+
+  # read all downloaded pages and combine
+  tree_list <- lapply(files, st_read, quiet = TRUE)
+  trees <- bind_rows(tree_list)
+
+  return(trees)
+}
+
+# load from RDS if available, otherwise build tree dataset and save it
+if (file.exists(here("data/mp03/trees_points.rds"))) {
+  trees_pts <- readRDS(here("data/mp03/trees_points.rds"))
+} else {
+  trees_pts <- get_tree_points()
+  saveRDS(trees_pts, here("data/mp03/trees_points.rds"))
+}
+
+# optional sample for faster mapping if it already exists
+if (file.exists(here("data/mp03/trees_sample50k.rds"))) {
+  trees_sample <- readRDS(here("data/mp03/trees_sample50k.rds"))
+}
+
+```
+
+::: callout-note
+I used the **HTTR2** package to download the **NYC Street Tree Census** data directly from the **Socrata API**. The data was pulled in pages using limit and offset, and each page was only downloaded if it wasn’t already saved. After combining all pages into one dataset, I saved it **(trees_points.rds)** so future renders would be much faster.
+:::
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(sf)
+library(dplyr)
+
+# load pre-cleaned tree points
+trees_pts <- readRDS("data/mp03/trees_points.rds")
+
+```
+
+::: callout-note
+This code loads my saved **NYC tree dataset** **(trees_points.rds)** so I can use it for mapping and analysis without downloading it again.
+:::
+
+# **Task 3: Interactive Tree Data Map**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(leaflet)
+library(dplyr)
+
+# ensure trees_sample exists; if not, create a sample 
+if (!exists("trees_sample")) {
+  if (file.exists("data/mp03/trees_sample50k.rds")) {
+    trees_sample <- readRDS("data/mp03/trees_sample50k.rds")
+  } else {
+    set.seed(123)
+    trees_sample <- trees_pts |> slice_sample(n = 50000)
+    saveRDS(trees_sample, "data/mp03/trees_sample50k.rds")
+  }
+}
+
+# how many trees are being mapped?
+tree_count <- nrow(trees_sample)
+
+leaflet(options = leafletOptions(minZoom = 9, maxZoom = 18)) |> 
+  addProviderTiles("CartoDB.Positron") |> 
+  addPolygons(
+    data = nycc_wgs84,
+    fillColor = "rgba(173,216,230,0.2)",
+    color = "#5C7EA8",
+    weight = 1,
+    fillOpacity = 0.2,
+    label = ~paste("Council District", CounDist)
+  ) |> 
+  addCircleMarkers(
+    data = trees_sample,
+    radius = 2,
+    color = "#4CAF50",
+    stroke = FALSE,
+    fillOpacity = 0.5,
+    popup = ~paste0("<b>Species:</b> ", spc_common, "<br>",
+                    "<b>Status:</b> ", status)
+  ) |> 
+  addLegend(
+    position = "bottomright",
+    colors = c("#5C7EA8", "#4CAF50"),
+    labels = c("Council Districts", "Tree Points"),
+    opacity = 0.8,
+    title = paste0("NYC Tree Map (", tree_count, " Trees)")
+  )
+
+```
+
+::: callout-tip
+## What Does This Show?
+
+This Leaflet map shows a **50,000-tree sample** from the **NYC Street Tree Census**, with **green** points representing trees and council district boundaries, outlined in **blue**, showing how coverage varies across the city. Clicking on a point reveals tree details, helping highlight species diversity and basic maintenance needs.
+
+The map makes it easy to see which areas have more shade and tree coverage, and which areas may face hotter temperatures and lower air quality due to fewer trees. Even as a sample, it clearly shows differences in tree distribution and supports directing more planting and maintenance to neighborhoods that need it most.
+:::
+
+# **Task 4: District-Level Analysis of Tree Coverage**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+# create trees_joined correctly
+
+trees_pts <- readRDS("data/mp03/trees_points.rds")
+
+trees_joined <- st_join(
+  trees_pts,       
+  nycc_wgs84,       
+  join = st_within  
+) |>
+  mutate(
+    borough = case_when(
+      CounDist >= 1  & CounDist <= 10 ~ "Manhattan",
+      CounDist >= 11 & CounDist <= 18 ~ "Bronx",
+      CounDist >= 19 & CounDist <= 32 ~ "Queens",
+      CounDist >= 33 & CounDist <= 48 ~ "Brooklyn",
+      CounDist >= 49 & CounDist <= 51 ~ "Staten Island",
+      TRUE ~ NA_character_
+    )
+  )
+
+# save this for future renders
+saveRDS(trees_joined, "data/mp03/trees_joined.rds")
+
+```
+
+::: callout-note
+This code matches each tree to the City Council District it belongs to and adds a borough label. Then, it saves the result as *trees_joined.rds* so I can use it later without re-running the join.
+:::
+
+## Council District With The Most Trees
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(DT)
+
+trees_per_district <- trees_joined |>
+  st_drop_geometry() |>
+  count(CounDist, borough, sort = TRUE) |>
+  rename(
+    District = CounDist,
+    Borough = borough,
+    `Tree Count` = n
+  )
+
+trees_per_district$`Tree Count` <- format(trees_per_district$`Tree Count`, big.mark=",")
+
+datatable(
+  trees_per_district,
+  rownames = TRUE,
+  caption = "Tree Count by District",
+  options = list(pageLength = 10, scrollX = TRUE)
+) |>
+  formatStyle(
+    "District",
+    target = "row",
+    backgroundColor = styleEqual(51, "lightgreen")
+  )
+
+
+```
+
+::: callout-tip
+## Answer
+
+This table shows how many trees are located in each **NYC Council District**. The districts are sorted from the highest number of trees to the lowest so it is easy to see which areas have the most tree coverage. **Council District `r trees_per_district$District[1]` (`r tools::toTitleCase(trees_per_district$Borough[1])`)** has the most trees with **`r trees_per_district$"Tree Count"[1]`** **trees**. Districts with fewer trees may have reduced shade and higher heat exposure, showing where additional tree planting and maintenance could be most beneficial. This comparison helps guide decisions on how to allocate resources more effectively.
+:::
+
+## Highest Density Of Trees In Which Council District?
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+tree_density <- trees_joined |>
+  st_drop_geometry() |>
+  count(CounDist, borough) |>
+  left_join(
+    nycc_wgs84 |> st_drop_geometry() |> select(CounDist, Shape_Area),
+    by = "CounDist"
+  ) |>
+  mutate(
+    `Tree Density` = round(n / Shape_Area, 5) 
+  ) |>
+  arrange(desc(`Tree Density`)) |>
+  rename(
+    District = CounDist,
+    Borough = borough,
+    `Tree Count` = n,
+    `Shape Area` = Shape_Area
+  )
+
+# add commas & make decimals pretty
+tree_density$`Tree Count` <- format(tree_density$`Tree Count`, big.mark=",")
+tree_density$`Shape Area` <- format(tree_density$`Shape Area`, big.mark=",")
+tree_density$`Tree Density` <- format(tree_density$`Tree Density`, nsmall = 5)
+
+datatable(
+  tree_density,
+  rownames = TRUE,
+  caption = "Tree Density by District",
+  options = list(pageLength = 10, scrollX = TRUE)
+) |>
+  formatStyle("District",
+    target = "row",
+    backgroundColor = styleEqual(9, "lightgreen")
+  )
+
+
+```
+
+::: callout-tip
+## Answer
+
+In this table, we are shown which **NYC Council Districts** has the most trees relative to their land area. Tree density helps us see which districts have more concentrated tree coverage, not just the highest count. The district with the highest tree density is **District `r tree_density$District[1]`** in **`r tools::toTitleCase(tree_density$Borough[1])`** with a density of **`r tree_density$"Tree Density"[1]` trees per square unit**. Districts with higher tree density tend to have stronger shade and environmental benefits, while lower-density districts may need more planting and tree care. This comparison helps identify which districts could benefit most from additional tree planting and long-term canopy investment.
+:::
+
+## Highest Fraction Of Dead Trees in Which Council District?
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+dead_fraction <- trees_joined |>
+  st_drop_geometry() |>
+  group_by(CounDist, borough) |>
+  summarise(
+    `Total Trees` = n(),
+    `Dead Trees` = sum(grepl("dead", status, ignore.case = TRUE), na.rm = TRUE),
+    `Fraction Dead` = round(`Dead Trees` / `Total Trees`, 3),
+    .groups = "drop"
+  ) |>
+  arrange(desc(`Fraction Dead`)) |>
+  rename(
+    District = CounDist,
+    Borough = borough
+  )
+
+dead_fraction$`Total Trees` <- format(dead_fraction$`Total Trees`, big.mark=",")
+dead_fraction$`Dead Trees` <- format(dead_fraction$`Dead Trees`, big.mark=",")
+dead_fraction$`Fraction Dead` <- format(dead_fraction$`Fraction Dead`, nsmall = 3)
+
+datatable(
+  dead_fraction,
+  rownames = TRUE,
+  caption = "Dead Tree Fraction by District",
+  options = list(pageLength = 10, scrollX = TRUE)
+) |>
+  formatStyle("District",
+    target = "row",
+    backgroundColor = styleEqual(16, "lightgreen")
+  )
+
+
+```
+
+::: callout-tip
+## Answer
+
+This analysis shows where tree health may need more attention. The highest share of dead trees is in **District** **`r dead_fraction$District[1]`** in **`r tools::toTitleCase(dead_fraction$Borough[1])`**, with **`r dead_fraction$"Fraction Dead"[1]`** of its trees recorded as dead. This might be caused by stress, disease, or limited maintenance. Districts with a higher share of dead trees may face greater safety risks and reduced shade, showing a need for more focused tree care and replanting. This helps the city decide where to focus tree care and new plantings so all neighborhoods can benefit from healthy trees.
+:::
+
+## Most Common Tree Species In Manhatthan
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: tru
+
+library(DT)
+
+# table for manhatthan
+manhattan_species <- trees_joined |>
+  st_drop_geometry() |>
+  filter(borough == "Manhattan") |> 
+  filter(!is.na(spc_common), spc_common != "") |> 
+  mutate(Species = tools::toTitleCase(spc_common)) |> 
+  count(Species, sort = TRUE) |> 
+  rename(Count = n)
+
+
+manhattan_species$Count <- format(manhattan_species$Count, big.mark = ",")
+
+datatable(
+  manhattan_species,
+  rownames = TRUE,
+  caption = "Most Common Tree Species in Manhattan",
+  options = list(pageLength = 10, scrollX = TRUE)
+) |>
+  formatStyle(
+    "Species",
+    target = "row",
+    backgroundColor = styleEqual(
+      manhattan_species$Species[1],
+      "lightgreen"
+    )
+  )
+
+```
+
+::: callout-tip
+## Answer
+
+This analysis looks at which tree species appear most often in Manhattan. The most common tree species in **Manhattan** is **`r manhattan_species$Species[1]`**, with **`r manhattan_species$Count[1]`** recorded trees. This helps the city decide which trees to plant and how to care for them. It also shows whether **Manhattan** has a mix of different tree species or mostly the same kinds. Knowing which species are most common helps guide tree care and future planting, especially to keep trees healthy and maintain species diversity.
+:::
+
+## Tree Species Closest To The Baruch Campus
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+
+library(sf)
+library(dplyr)
+library(leaflet)
+
+# create a WGS84 point for baruch 
+new_st_point <- function(lat, lon){
+  st_sfc(st_point(c(lon, lat))) |> 
+    st_set_crs("WGS84")
+}
+
+baruch_point <- new_st_point(40.7402, -73.9834)
+
+# nearest tree to baruch
+nearest_tree <- trees_pts |>
+  mutate(distance = as.numeric(st_distance(geometry, baruch_point))) |>
+  arrange(distance) |>
+  slice(1)
+
+# convert nearest tree for mapping
+nearest_tree_pt <- nearest_tree |> st_transform(4326)
+
+baruch_lat <- 40.7402
+baruch_lon <- -73.9834
+
+leaflet() |> 
+  addProviderTiles("CartoDB.Positron") |> 
+  
+
+  addCircleMarkers(
+    lng = baruch_lon, lat = baruch_lat,
+    radius = 10, color = "#8B4513", # baruch college
+    fillOpacity = 0.9, stroke = FALSE,
+    label = "Baruch College",
+    popup = "Baruch College"
+  ) |> 
+  
+
+  addCircleMarkers(
+    data = nearest_tree_pt,
+    radius = 10, color = "#228B22",  # tree
+    fillOpacity = 0.9, stroke = FALSE,
+    label = ~paste0("Nearest Tree: ", spc_common),
+    popup = ~paste0(
+      "<b>Nearest Tree</b><br>",
+      "Species: ", spc_common, "<br>",
+      "Status: ", status, "<br>",
+      "Distance: ", round(distance, 2), " meters"
+    )
+  ) |>
+
+  addLegend(
+    position = "bottomright",
+    title = "Map Legend",
+    colors = c("#8B4513", "#228B22"),
+    labels = c("Baruch College", "Nearest Tree"),
+    opacity = 0.9
+  ) |> 
+  
+  setView(lng = baruch_lon, lat = baruch_lat, zoom = 17)
+
+```
+
+::: callout-tip
+## Answer
+
+This map shows the street tree closest to **Baruch College**. The **brown** marker identifies the campus location, and the **green** marker highlights the nearest tree, including its species, condition, and distance. The nearest recorded tree is a **`r nearest_tree$spc_common`** with a status of **`r nearest_tree$status`**, located about **`r round(nearest_tree$distance, 2)` meters** from campus. This shows how nearby street trees can provide shade, comfort, and better air quality for students and pedestrians, and how tree data can help evaluate conditions around important public areas.
+:::
+
+# **District 16 Street Tree Restoration Program**
+
+::: {style="text-align: center;"}
+<img src="newyorkcitytrees.gif" width="650" style="height: 220px; border: 4px solid #000; border-radius: 10px; object-fit: cover;">
+:::
+
+**District 16** has one of the most serious street-tree maintenance needs in New York City. Data from the NYC Street Tree Census shows that the district has the **highest share of dead or hazardous trees** in the city: about **395 out of 6,897 trees (5.73%)**. These trees pose safety risks, reduce shade, and worsen air quality in neighborhoods that already face high heat exposure.
+
+This proposal supports the **District 16 Street Tree Restoration Program**, which would remove dangerous trees and improve canopy coverage.
+
+## Project Scope
+
+-   *Remove about 395 dead/hazardous trees*
+
+-   *Plant 300 new drought/heat-resistant trees*
+
+-   *Install 100 tree guards to protect young trees*
+
+-   *Focus planting near schools, senior centers, and busy pedestrian areas*
+
+## Why District 16?
+
+-   *Highest dead-tree rate in NYC (5.73%)*
+
+-   *Higher than Districts 15 (4.34%), 8 (4.00%), and 17 (3.99%)*
+
+-   *Fewer healthy trees than nearby Bronx districts*
+
+-   *Neighborhoods face high heat exposure and have limited shade*
+
+These results show that **District 16** would strongly benefit from immediate investment in tree removal and replanting. Below are the analyses and visualizations that support this proposal.
+
+## Mapping Street Trees And Shade Coverage In District 16
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(sf)
+library(dplyr)
+library(leaflet)
+
+# read data quietly
+trees <- readRDS("data/mp03/trees_points.rds")
+districts <- suppressMessages(
+  suppressWarnings(
+    st_read("data/mp03/nycc_25c/nycc.shp", quiet = TRUE)
+  )
+)
+
+# CRS transform
+trees <- suppressMessages(suppressWarnings(st_transform(trees, 4326)))
+districts <- suppressMessages(suppressWarnings(st_transform(districts, 4326)))
+
+# filter District 16
+d16 <- districts |> filter(CounDist %in% c("16", 16))
+
+# spatial intersection
+trees_d16 <- suppressWarnings(st_intersection(trees, d16))
+
+# convert geometry to lon/lat
+trees_d16 <- trees_d16 |>
+  mutate(
+    lon = st_coordinates(geometry)[,1],
+    lat = st_coordinates(geometry)[,2]
+  )
+
+# palette
+pal <- colorFactor(
+  palette = c("Dead" = "red", "Alive" = "darkgreen"),
+  domain = trees_d16$status
+)
+
+# leaflet map
+leaflet(trees_d16) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addPolygons(
+    data = d16,
+    fillColor = "transparent",
+    color = "#444444",
+    weight = 2,
+    label = "Council District 16"
+  ) |>
+  addCircleMarkers(
+    lng = ~lon, lat = ~lat,
+    color = ~pal(status),
+    radius = 3,
+    stroke = FALSE, fillOpacity = 0.6,
+    popup = ~paste0(
+      "<b>Status:</b> ", status, "<br>",
+      "<b>Species:</b> ", spc_common, "<br>",
+      "<b>Address:</b> ", address
+    )
+  ) |>
+  addLegend(
+    "topright",
+    pal = pal,
+    values = ~status,
+    title = "Tree Status"
+  ) |>
+  setView(
+    lng = mean(trees_d16$lon, na.rm = TRUE),
+    lat = mean(trees_d16$lat, na.rm = TRUE),
+    zoom = 14
+  )
+
+
+```
+
+::: callout-tip
+## What Does This Show?
+
+This interactive map shows the locations of street trees in **Council District 16**. **Red points** mark dead or removed trees, while **green points** represent living trees. Notice how many dead trees are clustered along major walking routes, near schools, bus stops, and busy commercial streets. These areas have limited shade and may pose higher safety risks from falling branches and heat exposure. Overall, the map clearly shows why **District 16** would benefit from priority tree removal and replanting efforts.
+:::
+
+## Dead Street Tree Rates In Bronx Council Districts
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(ggplot2)
+library(scales)
+library(dplyr)
+
+dead_rates <- trees |>
+  st_drop_geometry() |>
+  mutate(is_dead = status == "Dead") |>
+  group_by(council_district) |>
+  summarise(
+    total = n(),
+    dead = sum(is_dead, na.rm = TRUE),
+    rate = dead / total
+  ) |>
+  filter(council_district %in% c("16","15","8","17")) |>
+  mutate(
+    district_label = paste0("D", council_district, " Bronx")
+  )
+
+ggplot(dead_rates, aes(x = reorder(district_label, rate), y = rate)) +
+  geom_col(fill = "#8B0000", width = 0.65, alpha = 0.9) +
+  geom_text(aes(label = percent(rate, accuracy = 0.1)),
+            hjust = -0.15, size = 4.3, color = "#222222") +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(dead_rates$rate) * 1.25)) +
+  labs(
+    title = "District 16 Has the Highest Share of Dead Street Trees in the Bronx",
+    subtitle = "Share Of Trees Classified As Dead Or Removed (NYC Street Tree Census)",
+    x = "",
+    y = "Dead Tree Rate"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(face = "bold"),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+::: callout-tip
+## What Does This Show?
+
+This bar chart compares the share of dead or removed street trees in four Bronx council districts. **District 16** has the highest rate at about **5.73%**, higher than **District 15, District 8, and District 17**. This suggests that **District 16** faces a greater tree-maintenance need than nearby areas. The higher mortality rate may be linked to limited tree care or tougher environmental conditions. Overall, the chart supports prioritizing additional funding for tree removal and replanting in **District 16**.
+:::
+
+## Dead Street Tree Distribution In Districts 16 and 15
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| codefold: true
+
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+
+trees <- st_transform(trees, 4326)
+districts <- st_transform(districts, 4326)
+
+# filter district 15 vs. 16
+d16 <- districts |> filter(CounDist %in% c("16", 16)) |> mutate(label = "District 16")
+d15 <- districts |> filter(CounDist %in% c("15", 15)) |> mutate(label = "District 15")
+
+# clip the trees
+trees_d16 <- suppressWarnings(st_intersection(trees, d16)) |> filter(status == "Dead")
+trees_d15 <- suppressWarnings(st_intersection(trees, d15)) |> filter(status == "Dead")
+
+dead_both <- bind_rows(trees_d16, trees_d15)
+
+dead_both$label <- factor(dead_both$label, levels = c("District 16", "District 15"))
+
+
+ggplot() +
+  geom_sf(data = bind_rows(d16, d15),
+          fill = "gray95", color = "gray40", size = 0.4) +   
+  geom_sf(data = dead_both, aes(color = label),
+          size = 1.2, alpha = 0.75) +
+  scale_color_manual(values = c(
+    "District 15" = "#4D4D4D",
+    "District 16" = "#B30000"
+  )) +
+  facet_wrap(~ label, ncol = 2) +
+  labs(
+    title = "Comparison of Dead Street Trees: District 16 vs. District 15",
+    subtitle = "District 16 has more dead trees, showing the need for focused tree removal and replanting.",
+    color = "Council District"
+  ) +
+  coord_sf(expand = FALSE) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    strip.text = element_text(face = "bold", size = 12),
+    legend.position = c(0.88, 0.50),
+ 
+    plot.margin = margin(t = 4, r = 6, b = 4, l = 6)
+  )
+
+```
+
+::: callout-tip
+## What Does This Show?
+
+This comparison map shows dead street trees in **District 16 vs. District 15** side by side. **District 16** has a larger and more concentrated cluster of dead trees, especially near homes and busy walking routes. This pattern suggests a greater loss of shade and canopy compared to **District 15**, increasing heat and safety risks for residents. Together with earlier findings, the map supports making **District 16** a priority for tree removal, replanting, and long-term tree care.
+:::
+
+## **Our Request To You**
+
+Together, these visualizations show that **District 16** has the most urgent need for street-tree maintenance and canopy recovery among the Bronx districts compared, supporting targeted investment in the **District 16 Street Tree Restoration Program.** Targeted tree removal and replanting will improve safety, reduce extreme heat, and enhance quality of life for residents. With the right support, this initiative will create safer, cooler, and healthier streets for years to come.
+
+### Thank You!
