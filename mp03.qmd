@@ -538,7 +538,7 @@ This map shows the street tree closest to **Baruch College**. The **brown** mark
 # **District 16 Street Tree Restoration Program**
 
 ::: {style="text-align: left;"}
-<img src="newyorkcitytrees.gif" width="650" style="height: 220px; border: 4px solid #000; border-radius: 10px; object-fit: cover;">
+<img src="newyorkcitytrees.gif" width="650" style="height: 220px; border: 4px solid #000; border-radius: 10px; object-fit: cover;"/>
 :::
 
 **District 16** has one of the most serious street-tree maintenance needs in New York City. Data from the NYC Street Tree Census shows that the district has the **highest share of dead or hazardous trees** in the city: about **395 out of 6,897 trees (5.73%)**. These trees pose safety risks, reduce shade, and worsen air quality in neighborhoods that already face high heat exposure.
