@@ -21,7 +21,7 @@ website:
       - text: "PROJECT #4"
         href: mp04.qmd
       - text: INDIVIDUAL REPORT
-        href: Nusrat_Final_Individual_Report.qmd
+        file: Nusrat_Final_Individual_Report.qmd
 
     right:
       - icon: github
