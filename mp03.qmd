@@ -24,7 +24,7 @@ execute:
 
 # **What Is The Mission?**
 
-New York City’s parks and trees play a huge role in making the city a healthier and more livable place. With nearly **900,000** trees across the five boroughs, NYC’s urban forest provides cleaner air, shade in the summer, and a connection to nature that many people rely on. **The NYC Parks Department** invests a significant budget and workforce to care for more than **30,000** acres of public parkland, showing how important these green spaces are to the city. In this mini-project, I will explore data from the **NYC TreeMap** to create visualizations that help us better understand the trees around us. Based on what I find, I will propose a new program that aims to make the benefits of NYC’s trees more accessible to all communities, especially those that may not have as much green space today.
+New York City’s parks and trees play a huge role in making the city a healthier and more livable place. With nearly **900,000** trees across the five boroughs, NYC’s urban forest provides cleaner air, shade in the summer, and a connection to nature that many people rely on. **The NYC Parks Department** invest a significant budget and workforce to care for more than **30,000** acres of public parkland, showing how important these green spaces are to the city. In this mini-project, I will explore data from the **NYC TreeMap** to create visualizations that help us better understand the trees around us. Based on what I find, I will propose a new program that aims to make the benefits of NYC’s trees more accessible to all communities, especially those that may not have as much green space today.
 
 # **Data Acquisition**
 

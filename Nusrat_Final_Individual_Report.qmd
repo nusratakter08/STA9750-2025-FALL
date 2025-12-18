@@ -9,8 +9,6 @@ format:
     toc-depth: 3
     code-fold: true
     code-summary: "Show The Code"
-    embed-resources: true
-editor: visual
 execute: 
   warning: false
   message: false
@@ -22,15 +20,15 @@ execute:
 <img src="housingnyc.gif" width="670" style="border: 4px solid #000; border-radius: 10px;"/>
 :::
 
-# Introduction
+# **Introduction**
 
-Housing quality is an ongoing concern in New York City, where much of the housing stock is aging and densely occupied. The city’s 311 system allows residents to report housing-related issues, yet these complaints are not evenly distributed across neighborhoods. Some areas experience persistent problems related to heat, water, sanitation, and building maintenance, while others report far fewer issues. Understanding why these differences exist is important for effective housing policy and enforcement.
+Housing quality is an ongoing concern in New York City, where most of the housing stock is aging and densely occupied. The city’s 311 system allows residents to report housing-related issues, yet these complaints are not evenly distributed across neighborhoods. Some areas experience persistent problems related to heat, water, sanitation, and building maintenance, while others report far fewer issues. Understanding why these differences exist is important for effective housing policy and enforcement.
 
 Neighborhood income may play an important role in shaping housing conditions and complaint patterns. Lower-income neighborhoods often face higher rent burdens, older buildings, and delayed repairs, which can contribute to poorer housing quality. At the same time, differences in reporting behavior across income levels may also influence observed complaint patterns. This study asks: **to what extent do neighborhood income levels influence where housing complaints occur, the types of problems residents report, and the severity of those complaints across New York City?**
 
 To answer this overacing question, I analyze **311 housing complaints** alongside socioeconomic data from the **American Community Survey (ACS)**. Using spatial analysis and statistical modeling at the census tract level, this project examines how income is related to the distribution and nature of housing complaints across the city.
 
-# Data Sources And Acquisition
+# **Data Sources And Acquisition**
 
 ```{r}
 library(tidyverse)
@@ -106,7 +104,7 @@ Finally, **American Community Survey (ACS)** 5-year estimates were used. Key var
 
 All data sets were accessed using APIs, ensuring transparency and reproducibility. Census tracts were selected as the primary geographic unit because they approximate neighborhoods while providing stable boundaries and demographic information.
 
-# Data Cleaning And Preparation
+# **Data Cleaning And Preparation**
 
 Significant data cleaning was required before analysis. Across all data sets, date fields were standardized to ensure consistent time filtering. Records were restricted to complaints and violations occurring between **January 1 and December 31, 2023**.
 
@@ -215,7 +213,7 @@ acs_clean <- acs_nyc_tracts %>%
 
 The **ACS** data were cleaned to keep only the main variables used in the analysis, including median household income, rent burden, and the number of housing units. Variable names were simplified, and the data were limited to census tracts within New York City. These steps made sure all data sets matched in time and location and were ready for spatial joins and modeling.
 
-# Spatial Integration And Feature Engineering
+# **Spatial Integration And Feature Engineering**
 
 ```{r}
 
@@ -285,7 +283,7 @@ After merging the ACS data, neighborhoods were grouped into income quintiles bas
 
 This step also turned individual 311 complaints into a neighborhood-level data set, where each complaint is linked to both its location and the socioeconomic characteristics of the area.
 
-# Exploratory Data Analysis And Visualization
+# **Exploratory Data Analysis And Visualization**
 
 Initial exploratory analysis focused on understanding how complaint types differ across income groups. The **Top 15 most common complaint types** were identified and analyzed using both frequency counts and proportional distributions.
 
@@ -402,7 +400,7 @@ The stacked bar chart shows clear differences in complaint patterns across incom
 
 A chi-square test of independence confirms that these differences are statistically significant (**p \< 0.001**), indicating that complaint types are not randomly distributed across income quintiles. Together, these results provide strong evidence that neighborhood income is closely related to the types of housing problems residents experience and report.
 
-# Analytical Modeling: Income Effects On Housing Complaint Intensity
+# **Analytical Modeling: Income Effects On Housing Complaint Intensity**
 
 Building on the exploratory analysis, I use several statistical and models to examine how neighborhood income is related to housing complaint rates. These models allow the effect of income to differ across complaint types and capture both linear and nonlinear patterns, providing a clearer picture of how income shapes housing conditions across New York City.
 
@@ -1095,7 +1093,7 @@ This analysis shows that income sensitivity varies widely across complaint types
 After filtering for statistical significance and sufficient sample size, these habitability-related complaints continue to dominate the list of income-sensitive issues. This indicates that income is not just related to overall complaint volume, but is especially predictive of serious housing quality problems that directly affect health and safety.
 :::
 
-# How Does It Answer Our Main Question?
+# **How Does It Answer Our Main Question?**
 
 Taken together, the exploratory analysis and modeling results show a clear relationship between neighborhood income and housing complaint patterns across New York City. Income affects where complaints are concentrated, the types of housing problems residents report, and how severe those problems are.
 
@@ -1107,7 +1105,7 @@ Finally, **income is strongly linked to complaint intensity**. When complaints a
 
 Overall, these findings show that neighborhood income is a **key driver of housing inequality** across the city. Income influences not only how many complaints are made, but also what kinds of housing problems residents experience and how severe those problems are.
 
-# Conclusion And Limitations
+# **Conclusion And Limitations**
 
 This project demonstrates that neighborhood income plays an **important role in housing complaint patterns across New York City**. Lower-income neighborhoods experience higher complaint rates and are more likely to report serious housing issues such as heat and hot water problems, water leaks, and unsanitary conditions. These patterns remain even after accounting for housing size and borough, indicating real differences in housing conditions across income levels.
 

@@ -24,7 +24,7 @@ execute:
 
 # **What Is The Mission?**
 
-This project looks at the controversy around President Trump firing BLS Commissioner Dr. Erika McEntarfer in August 2025. R and web scraping were used to examine patterns in the Monthly Current Employment Statistics, the jobs numbers that everyone watches closely. By pulling and analyzing revision data from the BLS website, I investigated whether recent revisions actually show anything unusual that might justify the firing, or if they're just normal statistical adjustments like the BLS says. I combined web scraping, data cleaning, statistical testing, and visualizations to see what the data really showed about one of the most important economic indicators in the country.
+This project looks at the controversy around President Trump firing BLS Commissioner Dr. Erika McEntarfer in August 2025. R and web scraping were used to examine patterns in the Monthly Current Employment Statistics, the jobs numbers that everyone watches closely. By pulling and analyzing revision data from the BLS website, I investigated whether recent revisions actually show anything unusual that might justify the firing, or if they're just normal statistical adjustments like the BLS says. I combined web scraping, data cleaning, statistical testings, and visualizations to see what the data really showed about one of the most important economic indicators in the country.
 
 # **Data Acquisition**
 
@@ -694,6 +694,7 @@ obama_stats
 
 ::: callout-tip
 ## What Is Being Said?
+
 This claim argues that CES first-release job counts during Barack Obama’s presidency (Feb 2009–Jan 2017) were systematically overstated and then routinely revised downward. The data, however, show the opposite.
 :::
 
@@ -837,6 +838,7 @@ compare_stats
 
 ::: callout-tip
 ## What Is Being Said?
+
 This claim implies that CES first-release job numbers during Donald Trump’s presidency (Feb 2017–Jan 2021) had smaller revisions, indicating higher initial accuracy.
 :::
 

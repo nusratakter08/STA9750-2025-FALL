@@ -20,8 +20,9 @@ website:
         href: mp03.qmd
       - text: "PROJECT #4"
         href: mp04.qmd
-      - text: Individual Report
-        href: Nusrat_Final_Individual_Report.html
+      - text: INDIVIDUAL REPORT
+        href: Nusrat_Final_Individual_Report.qmd
+
     right:
       - icon: github
         href: https://github.com/nusratakter08/STA9750-2025-FALL
